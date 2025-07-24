@@ -1,130 +1,99 @@
-.App {
-  text-align: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.swap-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 500px;
+  padding: 20px;
 }
 
-.app-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 20px 40px;
-  color: white;
+.swap-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.swap-card h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.fee-info-text {
+  text-align: center;
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+  background: #f0f5ff;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.chain-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.wallet-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.account-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
-  border-radius: 25px;
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 25px;
   font-size: 0.9rem;
+  color: #555;
 }
 
-.chain-indicator {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 3px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-}
-
-.connect-btn, .disconnect-btn {
-  padding: 10px 20px;
-  border-radius: 25px;
+.chain-info span {
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.connect-btn {
-  background: linear-gradient(45deg, #2196f3, #21cbf3);
-  color: white;
-  border: none;
+.widget-wrapper {
+  margin: 20px 0;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.disconnect-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+.commission-info {
+  background: #fff8e1;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 25px;
+  border-left: 4px solid #ffc107;
 }
 
-.connect-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
-}
-
-.disconnect-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.app-main {
-  padding: 40px 20px;
-  min-height: calc(100vh - 80px);
-}
-
-.welcome-section {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 50px 30px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  color: white;
-}
-
-.welcome-section h2 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-}
-
-.welcome-section p {
+.commission-info h3 {
+  color: #333;
   margin-bottom: 15px;
-  font-size: 1.1rem;
-  opacity: 0.9;
+  text-align: center;
 }
 
-.large-connect-btn {
-  background: linear-gradient(45deg, #4CAF50, #8BC34A);
-  color: white;
-  border: none;
-  padding: 15px 40px;
-  border-radius: 30px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
+.commission-info ul {
+  text-align: left;
+  padding-left: 20px;
+  margin: 0;
 }
 
-.large-connect-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+.commission-info li {
+  margin: 10px 0;
+  color: #555;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 768px) {
-  .app-header {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px 20px;
+  .swap-card {
+    padding: 20px 15px;
+    margin: 0 10px;
   }
   
-  .app-main {
-    padding: 20px 10px;
+  .chain-info {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .fee-info-text {
+    font-size: 1rem;
   }
 }

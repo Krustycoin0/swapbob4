@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { LiFiWidget, WidgetConfig } from '@lifi/widget';
+import React from 'react';
+import { LiFiWidget } from '@lifi/widget';
 import './Swap.css';
 
-const Swap = ({ account, chainId }) => {
-  const [fee] = useState(0.3); // 0.3% fee per l'utente
-
+const Swap = ({ account }) => {
   // Configurazione LIFI con fee nel wallet dell'utente
   const widgetConfig = {
     integrator: 'SwapBob-Dex',
     apiKey: '37f3b0ae-58d0-423a-a895-133cd60f2b72.20bd41f0-014e-4389-9dfa-9eaefb8589e5',
     variant: 'wide',
     appearance: 'light',
-    fromChain: chainId,
-    toChain: chainId,
-    fee: fee, // Percentuale di fee
+    fee: 0.3, // 0.3% fee
     feeAddress: account, // Il wallet dell'utente riceve le fee
     slippage: 0.5,
-    hiddenUI: ['appearance', 'language'],
-    walletManagement: {
-      signer: async () => {
-        if (window.ethereum) {
-          const provider = new window.ethers.providers.Web3Provider(window.ethereum);
-          return provider.getSigner();
-        }
-        return null;
-      },
-    },
     theme: {
       palette: {
         primary: { 
@@ -33,24 +19,8 @@ const Swap = ({ account, chainId }) => {
         },
         secondary: { 
           main: '#764ba2' 
-        },
-        background: { 
-          paper: '#ffffff',
-          default: '#f8f9fa'
         }
       }
-    }
-  };
-
-  // Chain configurate
-  const getChainName = () => {
-    switch(chainId) {
-      case 1: return 'Ethereum';
-      case 56: return 'BSC';
-      case 137: return 'Polygon';
-      case 43114: return 'Avalanche';
-      case 250: return 'Fantom';
-      default: return 'Ethereum';
     }
   };
 
@@ -59,12 +29,11 @@ const Swap = ({ account, chainId }) => {
       <div className="swap-card">
         <h2>Swap Token con Fee</h2>
         <p className="fee-info-text">
-          Guadagna il {fee}% di fee su ogni swap! Le commissioni vanno direttamente al tuo wallet.
+          Guadagna il 0.3% di fee su ogni swap! Le commissioni vanno direttamente al tuo wallet.
         </p>
         
-        <div className="chain-info">
-          <span>Chain attiva: {getChainName()}</span>
-          <span>Wallet fee: {account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
+        <div className="wallet-info">
+          <p>Wallet fee: <strong>{account.substring(0, 6)}...{account.substring(account.length - 4)}</strong></p>
         </div>
 
         <div className="widget-wrapper">
@@ -77,10 +46,10 @@ const Swap = ({ account, chainId }) => {
         <div className="commission-info">
           <h3>Come funzionano le commissioni</h3>
           <ul>
-            <li>Ogni swap genera una commissione del {fee}%</li>
-            <li>Le commissioni vengono inviate automaticamente al tuo wallet</li>
-            <li>Non ci sono costi aggiuntivi per te</li>
-            <li>Guadagno passivo su ogni transazione</li>
+            <li>0.3% di fee su ogni swap</li>
+            <li>Le fee vanno al tuo wallet</li>
+            <li>Nessun costo aggiuntivo</li>
+            <li>Guadagno automatico</li>
           </ul>
         </div>
       </div>

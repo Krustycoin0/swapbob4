@@ -9,37 +9,66 @@ function App() {
   const connectWallet = async () => {
     if (window.ethereum) {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const chain = await window.ethereum.request({ method: 'eth_chainId' });
+        // Richiedi l'accesso all'account
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        // Ottieni la chain ID
+        const chain = await window.ethereum.request({ 
+          method: 'eth_chainId' 
+        });
+        
         setAccount(accounts[0]);
         setChainId(parseInt(chain, 16));
+        
+        console.log('Wallet connesso:', accounts[0]);
+        console.log('Chain ID:', parseInt(chain, 16));
       } catch (error) {
         console.error("Errore connessione wallet:", error);
+        alert('Errore nella connessione al wallet. Assicurati di avere MetaMask installato e sbloccato.');
       }
     } else {
-      alert('MetaMask non trovato!');
+      alert('MetaMask non trovato! Installa MetaMask per continuare.');
     }
   };
 
   const disconnectWallet = () => {
     setAccount('');
+    console.log('Wallet disconnesso');
   };
 
+  // Gestione cambio account e chain
   useEffect(() => {
+    const handleAccountsChanged = (accounts) => {
+      if (accounts.length === 0) {
+        // L'utente ha disconnesso il wallet
+        setAccount('');
+        console.log('Wallet disconnesso dall\'utente');
+      } else {
+        // L'utente ha cambiato account
+        setAccount(accounts[0]);
+        console.log('Account cambiato:', accounts[0]);
+      }
+    };
+
+    const handleChainChanged = (chainId) => {
+      setChainId(parseInt(chainId, 16));
+      console.log('Chain cambiata:', parseInt(chainId, 16));
+      // Ricarica la pagina quando cambia la chain
+      window.location.reload();
+    };
+
     if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts) => {
-        setAccount(accounts[0] || '');
-      });
-      
-      window.ethereum.on('chainChanged', (chainId) => {
-        setChainId(parseInt(chainId, 16));
-      });
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
     }
 
+    // Cleanup listeners
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', () => {});
-        window.ethereum.removeListener('chainChanged', () => {});
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
       }
     };
   }, []);
@@ -55,7 +84,9 @@ function App() {
               <span className="chain-indicator">
                 {chainId === 1 ? 'Ethereum' : 
                  chainId === 56 ? 'BSC' : 
-                 chainId === 137 ? 'Polygon' : 'Chain: ' + chainId}
+                 chainId === 137 ? 'Polygon' : 
+                 chainId === 43114 ? 'Avalanche' : 
+                 chainId === 250 ? 'Fantom' : 'Chain: ' + chainId}
               </span>
               <button onClick={disconnectWallet} className="disconnect-btn">Disconnetti</button>
             </div>

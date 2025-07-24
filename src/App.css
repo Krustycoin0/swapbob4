@@ -1,130 +1,191 @@
-.App {
-  text-align: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1e1f25;
+  color: #e0e0e0;
+  line-height: 1.6;
 }
 
-.app-header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 20px 40px;
-  color: white;
+.App {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  padding-bottom: 20px;
+  border-bottom: 1px solid #2d2f3a;
+  margin-bottom: 30px;
 }
 
-.app-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
+.wallet-info .connect-btn {
+  background: linear-gradient(135deg, #3a86ff, #6f42c1);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-weight: 600;
-}
-
-.wallet-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.account-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
-  border-radius: 25px;
-  font-size: 0.9rem;
-}
-
-.chain-indicator {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 3px 10px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-}
-
-.connect-btn, .disconnect-btn {
-  padding: 10px 20px;
-  border-radius: 25px;
-  font-weight: 500;
   cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
 }
 
-.connect-btn {
-  background: linear-gradient(45deg, #2196f3, #21cbf3);
-  color: white;
-  border: none;
+.wallet-info .connect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+.connected {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.address {
+  background-color: #2d2f3a;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.network {
+  background-color: #3a3d4d;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
 }
 
 .disconnect-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background-color: #e53e3e;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.connect-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .disconnect-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background-color: #c53030;
 }
 
-.app-main {
-  padding: 40px 20px;
-  min-height: calc(100vh - 80px);
-}
-
-.welcome-section {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 50px 30px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  color: white;
-}
-
-.welcome-section h2 {
+.error-banner {
+  background-color: #442a2a;
+  color: #ff6b6b;
+  padding: 15px;
+  border-radius: 12px;
   margin-bottom: 20px;
-  font-size: 2rem;
+  border-left: 4px solid #e53e3e;
+  font-weight: 500;
 }
 
-.welcome-section p {
-  margin-bottom: 15px;
-  font-size: 1.1rem;
-  opacity: 0.9;
+.status-banner {
+  background-color: #2a3c44;
+  color: #4dabf7;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 4px solid #3a86ff;
+  font-weight: 500;
 }
 
-.large-connect-btn {
-  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+.swap-container {
+  background-color: #252732;
+  border-radius: 16px;
+  padding: 25px;
+  margin-top: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.swap-box {
+  background-color: #2d2f3a;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 15px;
+}
+
+.input-group {
+  display: flex;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #3a3d4d;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 14px;
+  background-color: #1e1f25;
+  color: #e0e0e0;
+  border: none;
+  font-size: 18px;
+}
+
+.input-group select {
+  width: 120px;
+  background-color: #3a3d4d;
   color: white;
   border: none;
-  padding: 15px 40px;
-  border-radius: 30px;
-  font-size: 1.1rem;
+  padding: 0 15px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.swap-arrow {
+  text-align: center;
+  font-size: 28px;
+  margin: 15px 0;
+  color: #3a86ff;
+  font-weight: bold;
+}
+
+.swap-btn {
+  background: linear-gradient(135deg, #3a86ff, #6f42c1);
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 10px;
   transition: all 0.3s ease;
-  margin-top: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.large-connect-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+.swap-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.15);
 }
 
-@media (max-width: 768px) {
-  .app-header {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px 20px;
-  }
-  
-  .app-main {
-    padding: 20px 10px;
-  }
+.swap-btn:disabled {
+  background: #3a3d4d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.debug-info {
+  margin-top: 25px;
+  padding: 15px;
+  background-color: #1e1f25;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #8a8d9b;
+}
+
+.debug-info h3 {
+  margin-top: 0;
+  color: #3a86ff;
+  border-bottom: 1px solid #2d2f3a;
+  padding-bottom: 8px;
 }

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { LiFiWidget } from '@lifi/widget';
+import { LiFiWidget, WidgetConfig } from '@lifi/widget';
 import './Swap.css';
 
 const Swap = ({ account, chainId }) => {
-  const [showLifiWidget, setShowLifiWidget] = useState(false);
-  const [fee, setFee] = useState(0.3); // 0.3% fee per l'utente
+  const [fee] = useState(0.3); // 0.3% fee per l'utente
 
   // Configurazione LIFI con fee nel wallet dell'utente
   const widgetConfig = {
@@ -18,6 +17,15 @@ const Swap = ({ account, chainId }) => {
     feeAddress: account, // Il wallet dell'utente riceve le fee
     slippage: 0.5,
     hiddenUI: ['appearance', 'language'],
+    walletManagement: {
+      signer: async () => {
+        if (window.ethereum) {
+          const provider = new window.ethers.providers.Web3Provider(window.ethereum);
+          return provider.getSigner();
+        }
+        return null;
+      },
+    },
     theme: {
       palette: {
         primary: { 

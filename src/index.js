@@ -1,8 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
 import './index.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import App from './App';
+
+// Rendi ethers disponibile globalmente per LIFI Widget
+import { ethers } from 'ethers';
+window.ethers = ethers;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -10,5 +13,3 @@ root.render(
     <App />
   </React.StrictMode>
 );
-
-

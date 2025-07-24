@@ -4,18 +4,59 @@ import './App.css';
 function App() {
   const [account, setAccount] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [provider, setProvider] = useState(null);
   const [network, setNetwork] = useState('');
+  const [error, setError] = useState('');
 
-  // Controlla se MetaMask è installato
-  const isMetaMaskInstalled = () => {
-    return typeof window.ethereum !== 'undefined';
+  // Controlla la connessione al caricamento
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum && window.ethereum.selectedAddress) {
+        try {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_accounts' 
+          });
+          
+          if (accounts.length > 0) {
+            setAccount(accounts[0]);
+            setIsConnected(true);
+            updateNetwork();
+          }
+        } catch (err) {
+          setError("Errore nel recupero degli account");
+        }
+      }
+    };
+
+    checkConnection();
+  }, []);
+
+  // Aggiorna le info sulla rete
+  const updateNetwork = async () => {
+    if (window.ethereum) {
+      try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        setNetwork(getNetworkName(chainId));
+      } catch (err) {
+        setError("Impossibile ottenere la rete");
+      }
+    }
+  };
+
+  // Mappa ID rete a nome
+  const getNetworkName = (chainId) => {
+    switch (chainId) {
+      case '0x1': return 'Ethereum';
+      case '0x89': return 'Polygon';
+      case '0x38': return 'Binance Smart Chain';
+      case '0xa4b1': return 'Arbitrum';
+      default: return `Sconosciuta (${chainId})`;
+    }
   };
 
   // Connetti al wallet
   const connectWallet = async () => {
-    if (!isMetaMaskInstalled()) {
-      alert("Installa MetaMask!");
+    if (!window.ethereum) {
+      setError("Installa MetaMask o un wallet compatibile");
       return;
     }
 
@@ -26,48 +67,38 @@ function App() {
       
       setAccount(accounts[0]);
       setIsConnected(true);
+      updateNetwork();
+      setError('');
       
-      // Crea il provider ethers
-      const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(ethersProvider);
-      
-      // Ottieni la rete
-      const network = await ethersProvider.getNetwork();
-      setNetwork(network.name);
-      
-      // Aggiungi listener per cambi di account
+      // Setup event listeners
       window.ethereum.on('accountsChanged', handleAccountsChanged);
-      
-      // Aggiungi listener per cambi di rete
       window.ethereum.on('chainChanged', handleChainChanged);
       
-    } catch (error) {
-      console.error("Errore connessione wallet:", error);
-      alert(`Errore: ${error.message}`);
+    } catch (err) {
+      handleConnectionError(err);
     }
   };
 
-  // Gestisci cambio account
+  // Gestione cambio account
   const handleAccountsChanged = (accounts) => {
     if (accounts.length === 0) {
-      // Wallet disconnesso
       disconnectWallet();
     } else {
       setAccount(accounts[0]);
     }
   };
 
-  // Gestisci cambio rete
+  // Gestione cambio rete
   const handleChainChanged = (chainId) => {
-    window.location.reload();
+    setNetwork(getNetworkName(chainId));
   };
 
   // Disconnetti wallet
   const disconnectWallet = () => {
     setAccount('');
     setIsConnected(false);
-    setProvider(null);
     setNetwork('');
+    setError('');
     
     // Rimuovi listener
     if (window.ethereum) {
@@ -76,19 +107,19 @@ function App() {
     }
   };
 
-  // Prova a riconnettere automaticamente
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (isMetaMaskInstalled() && window.ethereum.selectedAddress) {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
-          connectWallet();
-        }
-      }
-    };
-
-    checkConnection();
-  }, []);
+  // Gestione errori
+  const handleConnectionError = (err) => {
+    console.error("Errore connessione wallet:", err);
+    
+    // Messaggi di errore specifici
+    if (err.code === 4001) {
+      setError("Connessione annullata dall'utente");
+    } else if (err.code === -32002) {
+      setError("Richiesta già in corso. Apri MetaMask per completare");
+    } else {
+      setError(`Errore: ${err.message || "Sconosciuto"}`);
+    }
+  };
 
   return (
     <div className="App">
@@ -111,63 +142,31 @@ function App() {
         </div>
       </header>
 
-      {isConnected && (
-        <main>
-          <div className="balance-section">
-            <h2>Il tuo Portafoglio</h2>
-            <div className="tokens">
-              <div className="token">
-                <span className="symbol">ETH</span>
-                <span className="balance">0.00</span>
-              </div>
-              <div className="token">
-                <span className="symbol">USDC</span>
-                <span className="balance">0.00</span>
-              </div>
-            </div>
-          </div>
+      {error && <div className="error-banner">{error}</div>}
 
-          <div className="swap-section">
-            <h2>Swap Token</h2>
-            <div className="swap-box">
-              <div className="input-group">
-                <input type="number" placeholder="0.0" />
-                <select>
-                  <option>ETH</option>
-                  <option>USDC</option>
-                </select>
-              </div>
-              
-              <div className="swap-arrow">↓</div>
-              
-              <div className="input-group">
-                <input type="number" placeholder="0.0" />
-                <select>
-                  <option>USDC</option>
-                  <option>ETH</option>
-                </select>
-              </div>
-              
-              <button className="swap-btn">Scambia</button>
-            </div>
+      {isConnected ? (
+        <main>
+          <div className="success-message">
+            <h2>Connessione Riuscita!</h2>
+            <p>Wallet connesso correttamente a {network}</p>
           </div>
         </main>
-      )}
-      
-      {!isConnected && (
+      ) : (
         <div className="welcome">
           <h2>Benvenuto in SwapBob</h2>
-          <p>Connetti il tuo wallet per iniziare a fare trading</p>
+          <p>Connetti il tuo wallet per iniziare</p>
           <button onClick={connectWallet} className="big-connect-btn">
             Connetti Wallet
           </button>
-          <div className="wallets">
-            <p>Supportiamo:</p>
-            <div className="wallet-icons">
-              <span>MetaMask</span>
-              <span>Trust Wallet</span>
-              <span>Coinbase Wallet</span>
-            </div>
+          
+          <div className="troubleshooting">
+            <h3>Problemi di connessione?</h3>
+            <ol>
+              <li>Assicurati di avere un wallet installato (MetaMask, Trust Wallet, ecc.)</li>
+              <li>Se usi MetaMask, sbloccalo e aggiorna la pagina</li>
+              <li>Controlla eventuali estensioni in conflitto</li>
+              <li>Prova con un browser diverso</li>
+            </ol>
           </div>
         </div>
       )}

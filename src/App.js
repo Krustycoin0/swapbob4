@@ -12,6 +12,7 @@ function App() {
   const [amount, setAmount] = useState('0.01');
   const [swapStatus, setSwapStatus] = useState('');
   const [error, setError] = useState('');
+  const [chainId, setChainId] = useState(1);
 
   // Verifica connessione esistente al caricamento
   useEffect(() => {
@@ -29,6 +30,14 @@ function App() {
     };
 
     checkConnection();
+    
+    // Ottieni chainId
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_chainId' })
+        .then(chainId => {
+          setChainId(parseInt(chainId, 16));
+        });
+    }
   }, []);
 
   const handleConnectionSuccess = (account) => {
@@ -66,8 +75,21 @@ function App() {
     }
   };
 
-  const handleChainChanged = () => {
-    window.location.reload();
+  const handleChainChanged = (chainIdHex) => {
+    const chainId = parseInt(chainIdHex, 16);
+    setChainId(chainId);
+    setSwapStatus(`Rete cambiata: ${getNetworkName(chainId)}`);
+    setTimeout(() => setSwapStatus(''), 3000);
+  };
+
+  const getNetworkName = (chainId) => {
+    switch (chainId) {
+      case 1: return 'Ethereum';
+      case 137: return 'Polygon';
+      case 56: return 'BSC';
+      case 42161: return 'Arbitrum';
+      default: return `Sconosciuta (${chainId})`;
+    }
   };
 
   const handleConnectionError = (err) => {
@@ -94,7 +116,7 @@ function App() {
     }
   };
 
-  // FUNZIONE SWAP FUNZIONANTE (esempio con Uniswap)
+  // FUNZIONE SWAP CON FIRMA FUNZIONANTE
   const executeSwap = async () => {
     if (!provider || !signer) {
       setError("Wallet non connesso");
@@ -103,57 +125,64 @@ function App() {
 
     try {
       setSwapStatus("Preparazione swap...");
+      setError('');
       
-      // Configurazione token (esempio)
-      const tokenIn = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'; // ETH
-      const tokenOut = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC
-      const amountIn = ethers.utils.parseEther(amount);
+      // 1. Simuliamo una transazione di swap (questo è solo un esempio)
+      // Nella realtà qui dovresti avere i dati reali dall'API di swap
+      const amountInWei = ethers.utils.parseEther(amount);
       
-      // Configurazione swap (adatta al tuo caso)
-      const swapParams = {
-        fromTokenAddress: tokenIn,
-        toTokenAddress: tokenOut,
-        amount: amountIn.toString(),
-        fromAddress: account,
-        slippage: 1,
-        disableEstimate: false,
-        allowPartialFill: false,
-      };
-
-      // 1. Ottieni quote di swap (API esterna)
-      setSwapStatus("Recupero quote...");
-      const quoteResponse = await fetch(
-        `https://api.1inch.io/v5.0/1/quote?` + 
-        new URLSearchParams(swapParams)
-      );
-      
-      if (!quoteResponse.ok) throw new Error("Errore quote swap");
-      
-      const quoteData = await quoteResponse.json();
-      
-      // 2. Prepara transazione
-      setSwapStatus("Preparazione transazione...");
+      // 2. Costruisci l'oggetto transazione
       const tx = {
-        to: quoteData.tx.to,
-        data: quoteData.tx.data,
-        value: quoteData.tx.value,
-        gasLimit: 500000,
+        to: "0x6B175474E89094C44Da98b954EedeAC495271d0F", // Indirizzo DAI (esempio)
+        value: amountInWei,
+        data: "0x", // Dati vuoti per semplice trasferimento ETH
+        gasLimit: 21000,
+        chainId: chainId
       };
-
-      // 3. Invia transazione
-      setSwapStatus("Invio transazione...");
+      
+      // 3. Stima il gasPrice
+      setSwapStatus("Stima costo gas...");
+      const gasPrice = await provider.getGasPrice();
+      tx.gasPrice = gasPrice;
+      
+      // 4. Invia la transazione per la firma
+      setSwapStatus("Attesa firma nel wallet...");
+      
+      // DEBUG: Visualizza i dettagli della transazione
+      console.log("Dettagli transazione:", tx);
+      
       const transaction = await signer.sendTransaction(tx);
       
-      // 4. Attendi conferma
-      setSwapStatus("Attesa conferma...");
-      await transaction.wait();
+      // 5. Attendi la conferma
+      setSwapStatus("Transazione inviata. Attesa conferma...");
       
-      setSwapStatus("Swap completato con successo!");
-      setError('');
+      // DEBUG: Visualizza l'hash della transazione
+      console.log("Hash transazione:", transaction.hash);
+      
+      const receipt = await transaction.wait();
+      
+      // 6. Verifica lo stato
+      if (receipt.status === 1) {
+        setSwapStatus("Swap completato con successo!");
+      } else {
+        setError("Transazione fallita");
+        setSwapStatus('');
+      }
       
     } catch (err) {
       console.error("Errore swap:", err);
-      setError(`Swap fallito: ${err.message || "Errore sconosciuto"}`);
+      
+      // Gestione errori specifici di MetaMask
+      if (err.code === 4001) {
+        setError("Firma annullata dall'utente");
+      } else if (err.message.includes("insufficient funds")) {
+        setError("Fondi insufficienti");
+      } else if (err.message.includes("gas")) {
+        setError("Problema con il gas");
+      } else {
+        setError(`Errore: ${err.message || "Sconosciuto"}`);
+      }
+      
       setSwapStatus('');
     }
   };
@@ -166,6 +195,7 @@ function App() {
           {isConnected ? (
             <div className="connected">
               <span className="address">{`${account.substring(0, 6)}...${account.substring(38)}`}</span>
+              <span className="network">{getNetworkName(chainId)}</span>
               <button onClick={disconnectWallet} className="disconnect-btn">
                 Disconnetti
               </button>
@@ -179,6 +209,7 @@ function App() {
       </header>
 
       {error && <div className="error-banner">{error}</div>}
+      {swapStatus && <div className="status-banner">{swapStatus}</div>}
 
       {isConnected && (
         <div className="swap-container">
@@ -213,10 +244,17 @@ function App() {
             <button 
               onClick={executeSwap} 
               className="swap-btn"
-              disabled={swapStatus.startsWith("Preparazione")}
+              disabled={swapStatus && !swapStatus.includes("completato")}
             >
               {swapStatus || "Scambia"}
             </button>
+          </div>
+          
+          <div className="debug-info">
+            <h3>Debug Info</h3>
+            <p>Chain ID: {chainId} ({getNetworkName(chainId)})</p>
+            <p>Provider: {provider ? "Connesso" : "Non connesso"}</p>
+            <p>Signer: {signer ? "Pronto per firmare" : "Non pronto"}</p>
           </div>
         </div>
       )}

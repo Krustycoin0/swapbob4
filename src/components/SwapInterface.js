@@ -1,104 +1,134 @@
-import { useState } from 'react'
+import React, { useState } from 'react';
+import { ethers } from 'ethers';
 
-export default function SwapInterface({ lifi, address, chainId }) {
-  const [fromToken] = useState({
+const SwapInterface = ({ account, provider, lifi, chainId }) => {
+  const [amount, setAmount] = useState('0.01');
+  const [routes, setRoutes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [status, setStatus] = useState('');
+
+  // Token predefiniti
+  const fromToken = {
     address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // ETH
     chainId: chainId
-  })
-  
-  const [toToken] = useState({
+  };
+
+  const toToken = {
     address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', // USDC su Polygon
     chainId: 137
-  })
-  
-  const [amount, setAmount] = useState('0.01')
-  const [routes, setRoutes] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  };
 
-  const fetchRoutes = async () => {
+  // Trova rotte di swap
+  const findSwapRoutes = async () => {
+    if (!lifi || !provider) return;
+    
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError('');
+      setStatus('Ricerca rotte...');
       
       const result = await lifi.getRoutes({
         fromChainId: fromToken.chainId,
         fromTokenAddress: fromToken.address,
         toChainId: toToken.chainId,
         toTokenAddress: toToken.address,
-        fromAmount: amount,
-        fromAddress: address,
-      })
+        fromAmount: ethers.utils.parseEther(amount).toString(),
+        fromAddress: account,
+      });
       
-      setRoutes(result.routes)
+      setRoutes(result.routes || []);
+      setStatus(result.routes.length > 0 
+        ? `Trovate ${result.routes.length} rotte` 
+        : 'Nessuna rotta disponibile');
+      
     } catch (err) {
-      console.error('Error fetching routes:', err)
-      setError('Impossibile trovare rotte. Verifica la connessione e i parametri.')
+      console.error('Errore ricerca rotte:', err);
+      setError('Impossibile trovare rotte. Verifica i parametri.');
+      setStatus('Errore nella ricerca');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
+  // Esegui lo swap
   const executeSwap = async (route) => {
+    if (!provider || !lifi) return;
+    
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError('');
+      setStatus('Preparazione transazione...');
       
-      const result = await lifi.executeRoute(route)
-      console.log('Swap result:', result)
+      const signer = provider.getSigner();
+      setStatus('Firma della transazione in corso...');
+      
+      const result = await lifi.executeRoute(signer, route);
       
       if (result.transactionHash) {
-        alert(`Swap completato! TX: ${result.transactionHash}`)
+        setStatus(`Transazione inviata! Hash: ${result.transactionHash}`);
+        // Mostra link all'esploratore
+        const explorerLink = `https://etherscan.io/tx/${result.transactionHash}`;
+        setStatus(
+          <span>
+            Transazione completata!{' '}
+            <a href={explorerLink} target="_blank" rel="noopener noreferrer">
+              Visualizza su Etherscan
+            </a>
+          </span>
+        );
       }
+      
     } catch (err) {
-      console.error('Swap execution failed:', err)
-      setError(`Errore swap: ${err.message}`)
+      console.error('Errore swap:', err);
+      setError(`Errore nell'esecuzione: ${err.message}`);
+      setStatus('Swap fallito');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div>
-      <div className="mb-4">
-        <label className="block mb-2">Importo:</label>
+    <div className="swap-interface">
+      <div className="swap-input">
+        <label>Importo da scambiare (ETH):</label>
         <input
           type="text"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="0.0"
+          disabled={loading}
         />
       </div>
       
-      <button
-        onClick={fetchRoutes}
-        disabled={loading}
-        className={`w-full py-3 rounded-lg mb-4 ${
-          loading ? 'bg-gray-600' : 'bg-blue-600 hover:bg-blue-700'
-        }`}
-      >
-        {loading ? 'Ricerca rotte...' : 'Trova rotte di swap'}
-      </button>
+      <div className="swap-actions">
+        <button 
+          onClick={findSwapRoutes} 
+          disabled={loading || !account}
+        >
+          {loading ? 'Ricerca in corso...' : 'Trova rotte'}
+        </button>
+      </div>
       
-      {error && <div className="text-red-400 mb-4">{error}</div>}
+      {status && <div className="status-message">{status}</div>}
+      {error && <div className="error-message">{error}</div>}
       
-      <div className="space-y-3">
+      <div className="swap-routes">
         {routes.slice(0, 3).map((route, index) => (
-          <div key={index} className="bg-gray-700 p-4 rounded-lg">
-            <div className="flex justify-between mb-2">
-              <span>Rotta #{index + 1}</span>
-              <span className="font-bold">
-                {route.estimate.toAmountUSD} USD
-              </span>
-            </div>
+          <div key={index} className="route-card">
+            <h3>Rotta #{index + 1}</h3>
+            <p>
+              <strong>Riceverai:</strong> {ethers.utils.formatUnits(route.estimate.toAmount, 6)} USDC
+            </p>
+            <p>
+              <strong>Costo gas:</strong> ${route.estimate.gasCostUSD.toFixed(2)}
+            </p>
+            <p>
+              <strong>Durata stimata:</strong> {route.estimate.estimatedDuration / 60} minuti
+            </p>
             
-            <button
-              onClick={() => executeSwap(route)}
+            <button 
+              onClick={() => executeSwap(route)} 
               disabled={loading}
-              className={`w-full py-2 rounded ${
-                loading ? 'bg-gray-500' : 'bg-green-600 hover:bg-green-700'
-              }`}
             >
               Esegui Swap
             </button>
@@ -106,5 +136,7 @@ export default function SwapInterface({ lifi, address, chainId }) {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default SwapInterface;

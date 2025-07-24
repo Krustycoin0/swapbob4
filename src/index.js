@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// Rendi ethers disponibile globalmente per LIFI Widget
+// Importa ethers e rendilo disponibile globalmente
 import { ethers } from 'ethers';
 window.ethers = ethers;
 

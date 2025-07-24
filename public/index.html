@@ -4,11 +4,21 @@
   <meta charset="utf-8" />
   <title>SwapBob</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Importa ethers.js da CDN -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+  <script>
+    // Controlla se MetaMask è installato e inietta ethers
+    window.addEventListener('load', () => {
+      if (typeof window.ethereum !== 'undefined') {
+        window.ethers = ethers;
+        console.log('Ethers.js caricato correttamente');
+      } else {
+        console.error('MetaMask non installato!');
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>
-  
-  <!-- Importa ethers.js da CDN -->
-  <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
 </body>
 </html>

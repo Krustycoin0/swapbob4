@@ -4,73 +4,47 @@ import Swap from './components/Swap';
 
 function App() {
   const [account, setAccount] = useState('');
-  const [chainId, setChainId] = useState(1);
 
   const connectWallet = async () => {
-    if (window.ethereum) {
+    if (typeof window.ethereum !== 'undefined') {
       try {
-        // Richiedi l'accesso all'account
+        console.log('Tentativo connessione wallet...');
         const accounts = await window.ethereum.request({ 
           method: 'eth_requestAccounts' 
         });
-        
-        // Ottieni la chain ID
-        const chain = await window.ethereum.request({ 
-          method: 'eth_chainId' 
-        });
-        
+        console.log('Accounts ottenuti:', accounts);
         setAccount(accounts[0]);
-        setChainId(parseInt(chain, 16));
-        
-        console.log('Wallet connesso:', accounts[0]);
-        console.log('Chain ID:', parseInt(chain, 16));
       } catch (error) {
-        console.error("Errore connessione wallet:", error);
-        alert('Errore nella connessione al wallet. Assicurati di avere MetaMask installato e sbloccato.');
+        console.error("Errore dettagliato:", error);
+        alert('Errore nella connessione: ' + error.message);
       }
     } else {
-      alert('MetaMask non trovato! Installa MetaMask per continuare.');
+      alert('MetaMask non trovato! Installa l\'estensione MetaMask.');
     }
   };
 
   const disconnectWallet = () => {
     setAccount('');
-    console.log('Wallet disconnesso');
   };
 
-  // Gestione cambio account e chain
+  // Controlla se il wallet è già connesso
   useEffect(() => {
-    const handleAccountsChanged = (accounts) => {
-      if (accounts.length === 0) {
-        // L'utente ha disconnesso il wallet
-        setAccount('');
-        console.log('Wallet disconnesso dall\'utente');
-      } else {
-        // L'utente ha cambiato account
-        setAccount(accounts[0]);
-        console.log('Account cambiato:', accounts[0]);
+    const checkConnection = async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_accounts' 
+          });
+          if (accounts.length > 0) {
+            setAccount(accounts[0]);
+          }
+        } catch (error) {
+          console.log('Nessun wallet connesso');
+        }
       }
     };
 
-    const handleChainChanged = (chainId) => {
-      setChainId(parseInt(chainId, 16));
-      console.log('Chain cambiata:', parseInt(chainId, 16));
-      // Ricarica la pagina quando cambia la chain
-      window.location.reload();
-    };
-
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-    }
-
-    // Cleanup listeners
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
-      }
-    };
+    checkConnection();
   }, []);
 
   return (
@@ -81,13 +55,6 @@ function App() {
           {account ? (
             <div className="account-info">
               <span>{account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
-              <span className="chain-indicator">
-                {chainId === 1 ? 'Ethereum' : 
-                 chainId === 56 ? 'BSC' : 
-                 chainId === 137 ? 'Polygon' : 
-                 chainId === 43114 ? 'Avalanche' : 
-                 chainId === 250 ? 'Fantom' : 'Chain: ' + chainId}
-              </span>
               <button onClick={disconnectWallet} className="disconnect-btn">Disconnetti</button>
             </div>
           ) : (
@@ -98,7 +65,7 @@ function App() {
       
       <main className="app-main">
         {account ? (
-          <Swap account={account} chainId={chainId} />
+          <Swap account={account} />
         ) : (
           <div className="welcome-section">
             <h2>Benvenuto su SwapBob</h2>

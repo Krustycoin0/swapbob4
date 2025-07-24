@@ -2,10 +2,29 @@
 <html lang="it">
 <head>
   <meta charset="utf-8" />
-  <title>La Mia App</title>
+  <title>SwapBob</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Importa ethers.js -->
   <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+  <style>
+    /* Stile per evitare lampeggi durante il caricamento */
+    body:not(.loaded) {
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body.loaded {
+      opacity: 1;
+    }
+  </style>
+  <script>
+    // Controlla se MetaMask è installato
+    window.addEventListener('load', () => {
+      document.body.classList.add('loaded');
+      if (typeof window.ethereum === 'undefined') {
+        alert('Installa MetaMask per usare questa app!');
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>
